@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>s i l e n c e</title>
+<style>
+  body {
+    margin: 0;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* full viewport height */
+  }
+  canvas {
+    display: block;
+    width: 600px;
+    height: 600px;
+    border: 0px solid #000; /* optional: frame border */
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c" width="600" height="600"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+let t = 0;
+
+/* --- word noise --- */
+const words = [
+"s", "i", "l", "e", "n", "c", "e"
+];
+
+let noiseWords = [];
+
+function spawnWord() {
+  const w = words[Math.floor(Math.random() * words.length)];
+  noiseWords.push({
+    text: w,
+    x: Math.random() * c.width,
+    y: Math.random() * c.height,
+    life: 0,
+    maxLife: 60 + Math.random() * 60
+  });
+}
+
+/* --- draw loop --- */
+function draw() {
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  const n = 15;
+  const w = c.width / n;
+  const h = c.height / n;
+
+  ctx.strokeStyle = "black";
+
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const k = Math.sqrt(x + y * n + 1);
+      const s = Math.abs(Math.log(Math.abs(Math.sqrt(t - k)) + 0.0001)) * w * 0.1;
+
+      ctx.strokeRect(
+        x * w + (w - s) / 2,
+        y * h + (h - s) / 2,
+        s,
+        s
+      );
+    }
+  }
+
+  /* --- word noise rendering --- */
+  if (Math.random() < 0.02) spawnWord();
+
+  ctx.font = "12px monospace";
+  ctx.fillStyle = "black";
+
+  noiseWords.forEach(w => {
+    w.life++;
+    const alpha = Math.exp(Math.PI * w.life / w.maxLife);
+    ctx.globalAlpha = alpha;
+    ctx.fillText(w.text, w.x, w.y);
+  });
+
+  ctx.globalAlpha = 1;
+
+  noiseWords = noiseWords.filter(w => w.life < w.maxLife);
+
+  t += 0.01;
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
+
+
